@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeline();
     initCustomization();
     initMinigame();
-    initExportImport(); // Menu avatar con export/import
-    initWelcomeModal(); // Modale primo accesso
     updateHomeStats();
     updateRecentActivities();
     applyTheme();
@@ -302,16 +300,6 @@ function resetHealthForm() {
     document.getElementById('healthReminder').checked = false;
 }
 
-function openHealthModalWithDate(dateStr) {
-    const modal = document.getElementById('healthModal');
-
-    // Pre-compila il campo data
-    document.getElementById('healthDate').value = dateStr;
-
-    // Apri modale
-    openModal(modal);
-}
-
 function getHealthTypeLabel(type) {
     const labels = {
         vaccination: 'Vaccinazione',
@@ -368,14 +356,6 @@ function renderCalendar() {
         if (appState.healthEvents.some(e => e.date === dateStr)) {
             dayEl.classList.add('has-event');
         }
-
-        // Click su giorno → apre modale con data pre-selezionata
-        dayEl.addEventListener('click', () => {
-            openHealthModalWithDate(dateStr);
-        });
-
-        // Stile cursor pointer
-        dayEl.style.cursor = 'pointer';
 
         grid.appendChild(dayEl);
     }
@@ -457,28 +437,8 @@ function initShopping() {
     cancelBtn.addEventListener('click', () => closeModal(modal));
     saveBtn.addEventListener('click', saveShoppingItem);
 
-    // Quick add buttons per categoria
-    document.querySelectorAll('.btn-quick-add').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const category = btn.dataset.category;
-            openShoppingModalWithCategory(category);
-        });
-    });
-
     renderShoppingItems();
 }
-
-function openShoppingModalWithCategory(category) {
-    const modal = document.getElementById('shoppingModal');
-
-    // Pre-seleziona la categoria
-    document.getElementById('shoppingCategory').value = category;
-
-    // Apri modale
-    openModal(modal);
-}
-
-let editingShoppingId = null; // Track se stiamo modificando
 
 function saveShoppingItem() {
     const category = document.getElementById('shoppingCategory').value;
@@ -492,32 +452,18 @@ function saveShoppingItem() {
         return;
     }
 
-    if (editingShoppingId) {
-        // Modalità modifica
-        const existingItem = appState.shoppingItems.find(i => i.id === editingShoppingId);
-        if (existingItem) {
-            existingItem.category = category;
-            existingItem.item = item;
-            existingItem.quantity = quantity || 1;
-            existingItem.date = date;
-            existingItem.notes = notes;
-        }
-        editingShoppingId = null;
-    } else {
-        // Modalità creazione
-        const shoppingItem = {
-            id: Date.now(),
-            category,
-            item,
-            quantity: quantity || 1,
-            date,
-            notes,
-            completed: false,
-            timestamp: new Date().toISOString()
-        };
-        appState.shoppingItems.push(shoppingItem);
-    }
+    const shoppingItem = {
+        id: Date.now(),
+        category,
+        item,
+        quantity: quantity || 1,
+        date,
+        notes,
+        completed: false,
+        timestamp: new Date().toISOString()
+    };
 
+    appState.shoppingItems.push(shoppingItem);
     saveToLocalStorage();
     renderShoppingItems();
     closeModal(document.getElementById('shoppingModal'));
@@ -526,41 +472,12 @@ function saveShoppingItem() {
     updateRecentActivities();
 }
 
-function openEditShoppingModal(item) {
-    const modal = document.getElementById('shoppingModal');
-
-    // Memorizza ID per modifica
-    editingShoppingId = item.id;
-
-    // Pre-compila i campi
-    document.getElementById('shoppingCategory').value = item.category;
-    document.getElementById('shoppingItem').value = item.item;
-    document.getElementById('shoppingQuantity').value = item.quantity;
-    document.getElementById('shoppingDate').value = item.date || '';
-    document.getElementById('shoppingNotes').value = item.notes || '';
-
-    // Cambia titolo modale
-    modal.querySelector('.modal-header h3').textContent = 'Modifica promemoria 📝';
-
-    // Apri modale
-    openModal(modal);
-}
-
 function resetShoppingForm() {
     document.getElementById('shoppingCategory').value = 'food';
     document.getElementById('shoppingItem').value = '';
     document.getElementById('shoppingQuantity').value = '1';
     document.getElementById('shoppingDate').value = '';
     document.getElementById('shoppingNotes').value = '';
-
-    // Reset titolo modale
-    const modal = document.getElementById('shoppingModal');
-    if (modal) {
-        modal.querySelector('.modal-header h3').textContent = 'Nuovo promemoria 🌸';
-    }
-
-    // Reset editing ID
-    editingShoppingId = null;
 }
 
 function renderShoppingItems() {
@@ -611,34 +528,13 @@ function renderShoppingItems() {
             // Aggiungi event listeners
             const toggleBtn = itemEl.querySelector('.btn-toggle-shopping');
             const deleteBtn = itemEl.querySelector('.btn-delete-shopping');
-            const itemInfo = itemEl.querySelector('.item-info');
 
-            toggleBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Previeni apertura modale
-                toggleShoppingItem(item.id);
-            });
+            toggleBtn.addEventListener('click', () => toggleShoppingItem(item.id));
+            deleteBtn.addEventListener('click', () => deleteShoppingItem(item.id));
 
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Previeni apertura modale
-                deleteShoppingItem(item.id);
-            });
-
-            // Click su item-info apre modifica (non interferisce con drag handle)
-            itemInfo.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openEditShoppingModal(item);
-            });
-
-            itemInfo.style.cursor = 'pointer';
-
-            // Drag and drop event listeners (Desktop)
+            // Drag and drop event listeners
             itemEl.addEventListener('dragstart', handleDragStart);
             itemEl.addEventListener('dragend', handleDragEnd);
-
-            // Touch events per mobile
-            itemEl.addEventListener('touchstart', handleTouchStart, { passive: false });
-            itemEl.addEventListener('touchmove', handleTouchMove, { passive: false });
-            itemEl.addEventListener('touchend', handleTouchEnd, { passive: false });
         }
     });
 }
@@ -648,10 +544,6 @@ function renderShoppingItems() {
 // ==========================================
 
 let draggedItem = null;
-let touchClone = null;
-let touchStartX = 0;
-let touchStartY = 0;
-let currentDropZone = null;
 
 function handleDragStart(e) {
     draggedItem = e.currentTarget;
@@ -667,110 +559,6 @@ function handleDragEnd(e) {
     document.querySelectorAll('.shopping-items').forEach(container => {
         container.classList.remove('drag-over');
     });
-}
-
-// ==========================================
-// TOUCH HANDLERS PER MOBILE
-// ==========================================
-
-function handleTouchStart(e) {
-    draggedItem = e.currentTarget;
-    const touch = e.touches[0];
-
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-
-    // Crea clone visivo per feedback
-    touchClone = draggedItem.cloneNode(true);
-    touchClone.classList.add('touch-dragging-clone');
-    touchClone.style.position = 'fixed';
-    touchClone.style.pointerEvents = 'none';
-    touchClone.style.zIndex = '10000';
-    touchClone.style.opacity = '0.8';
-    touchClone.style.transform = 'scale(1.05)';
-    touchClone.style.width = draggedItem.offsetWidth + 'px';
-    touchClone.style.left = touch.clientX - (draggedItem.offsetWidth / 2) + 'px';
-    touchClone.style.top = touch.clientY - 30 + 'px';
-    document.body.appendChild(touchClone);
-
-    // Aggiungi classe all'originale
-    draggedItem.classList.add('touch-dragging');
-}
-
-function handleTouchMove(e) {
-    if (!touchClone || !draggedItem) return;
-
-    e.preventDefault(); // Previeni scroll durante drag
-
-    const touch = e.touches[0];
-
-    // Aggiorna posizione clone
-    touchClone.style.left = touch.clientX - (draggedItem.offsetWidth / 2) + 'px';
-    touchClone.style.top = touch.clientY - 30 + 'px';
-
-    // Trova elemento sotto il tocco
-    touchClone.style.display = 'none';
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-    touchClone.style.display = '';
-
-    // Rimuovi highlight da tutte le zone
-    document.querySelectorAll('.shopping-items').forEach(container => {
-        container.classList.remove('drag-over');
-    });
-
-    // Trova la drop zone (il container .shopping-items più vicino)
-    if (elementBelow) {
-        const dropZone = elementBelow.closest('.shopping-items');
-        if (dropZone) {
-            currentDropZone = dropZone;
-            dropZone.classList.add('drag-over');
-        } else {
-            currentDropZone = null;
-        }
-    }
-}
-
-function handleTouchEnd(e) {
-    if (!draggedItem) return;
-
-    // Rimuovi clone
-    if (touchClone) {
-        touchClone.remove();
-        touchClone = null;
-    }
-
-    // Rimuovi classi
-    draggedItem.classList.remove('touch-dragging');
-    document.querySelectorAll('.shopping-items').forEach(container => {
-        container.classList.remove('drag-over');
-    });
-
-    // Esegui drop se c'è una zona valida
-    if (currentDropZone && currentDropZone.classList.contains('shopping-items')) {
-        const itemId = parseInt(draggedItem.dataset.id);
-        const item = appState.shoppingItems.find(i => i.id === itemId);
-
-        if (item) {
-            const newCategory = getCategoryFromContainer(currentDropZone);
-
-            if (newCategory && newCategory !== item.category) {
-                // Aggiorna categoria
-                item.category = newCategory;
-                saveToLocalStorage();
-
-                // Animazione di feedback
-                showCategoryChangeNotification(item.item, newCategory);
-
-                // Re-render
-                renderShoppingItems();
-                updateRecentActivities();
-            }
-        }
-    }
-
-    // Reset
-    draggedItem = null;
-    currentDropZone = null;
 }
 
 function handleDragOver(e) {
@@ -935,52 +723,13 @@ function renderTimeline() {
         return `
             <div class="timeline-item">
                 <div class="timeline-dot">${event.icon}</div>
-                <div class="timeline-card" data-id="${event.id}" data-type="${event.type}">
+                <div class="timeline-card">
                     <div class="timeline-date">${formatDate(eventDate)}</div>
                     ${content}
                 </div>
             </div>
         `;
     }).join('');
-
-    // Aggiungi click listeners alle card
-    container.querySelectorAll('.timeline-card').forEach(card => {
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', () => {
-            const id = parseInt(card.dataset.id);
-            const type = card.dataset.type;
-            openTimelineItemEdit(id, type);
-        });
-    });
-}
-
-function openTimelineItemEdit(id, type) {
-    if (type === 'diary') {
-        // Trova entry diario e apri modale diario in modalità edit
-        const entry = appState.diaryEntries.find(e => e.id === id);
-        if (entry) {
-            // TODO: Implementare edit diario (simile a shopping)
-            alert('Modifica diario: feature in arrivo! Per ora puoi eliminare e ricreare.');
-        }
-    } else if (type === 'health') {
-        // Trova evento salute e apri modale salute in modalità edit
-        const event = appState.healthEvents.find(e => e.id === id);
-        if (event) {
-            // TODO: Implementare edit salute
-            alert('Modifica evento salute: feature in arrivo! Per ora puoi eliminare e ricreare.');
-        }
-    } else if (type === 'shopping') {
-        // Trova item shopping e apri modale shopping in modalità edit
-        const item = appState.shoppingItems.find(i => i.id === id);
-        if (item) {
-            // Passa alla sezione shopping
-            navigateToSection('shopping');
-            // Piccolo delay per assicurarsi che la sezione sia visibile
-            setTimeout(() => {
-                openEditShoppingModal(item);
-            }, 50);
-        }
-    }
 }
 
 // ==========================================
@@ -1016,7 +765,6 @@ function initCustomization() {
             option.classList.add('selected');
             appState.petAvatar = option.dataset.avatar;
             document.querySelector('.avatar-placeholder').textContent = appState.petAvatar;
-            updateHeaderAvatar(); // Aggiorna anche avatar nell'header
             saveToLocalStorage();
         });
     });
@@ -1100,18 +848,10 @@ function updateRecentActivities() {
 
 function openModal(modal) {
     modal.classList.add('active');
-    // Blocca scroll del body quando modale è aperta
-    document.body.style.overflow = 'hidden';
-    // Aggiungi classe per modificare header (evita sovrapposizione)
-    document.body.classList.add('modal-open');
 }
 
 function closeModal(modal) {
     modal.classList.remove('active');
-    // Riabilita scroll del body
-    document.body.style.overflow = '';
-    // Rimuovi classe modal-open
-    document.body.classList.remove('modal-open');
 }
 
 // Click fuori dal modal per chiudere
@@ -1197,9 +937,9 @@ let minigameMissedClicks = 0;
 
 // Costanti di bilanciamento
 const MINIGAME_CONFIG = {
-    baseSpeed: 800,            // Velocità iniziale (ms) - ridotta per più velocità
-    minSpeed: 200,             // Velocità massima raggiungibile (ms)
-    speedDecrement: 40,        // Riduzione velocità per punto
+    baseSpeed: 1200,           // Velocità iniziale (ms)
+    minSpeed: 300,             // Velocità massima raggiungibile (ms)
+    speedDecrement: 50,        // Riduzione velocità per punto
     comboWindow: 2000,         // Tempo per mantenere combo (ms)
     comboThreshold: 3,         // Click necessari per attivare combo
     powerUpChance: 0.15,       // 15% chance di power-up
@@ -1306,7 +1046,7 @@ function startSmartMovement() {
     if (!container) return;
 
     let moveCount = 0;
-    const patternChangeInterval = 5; // Cambia pattern ogni 5 movimenti (più varietà)
+    const patternChangeInterval = 8; // Cambia pattern ogni 8 movimenti
 
     const move = () => {
         if (!minigameActive) {
@@ -1325,7 +1065,7 @@ function startSmartMovement() {
         const newPosition = calculateNextPosition(container, avatarPlaceholder, minigameMovementPattern, moveCount);
 
         // Applica movimento con transizione fluida
-        const transitionDuration = getCurrentSpeed() * 0.7; // 70% del tempo di pausa per movimento più fluido
+        const transitionDuration = getCurrentSpeed() * 0.6; // 60% del tempo di pausa
         avatarPlaceholder.style.position = 'absolute';
         avatarPlaceholder.style.left = newPosition.x + 'px';
         avatarPlaceholder.style.top = newPosition.y + 'px';
@@ -1375,8 +1115,8 @@ function calculateNextPosition(container, avatar, pattern, moveCount) {
             break;
 
         case 'bounce':
-            // Rimbalzo da bordi - movimento più ampio
-            const stepSize = 150;
+            // Rimbalzo da bordi
+            const stepSize = 100;
             x = currentX + (Math.random() - 0.5) * stepSize * 2;
             y = currentY + (Math.random() - 0.5) * stepSize * 2;
             x = Math.max(0, Math.min(x, maxX));
@@ -1385,7 +1125,7 @@ function calculateNextPosition(container, avatar, pattern, moveCount) {
 
         case 'random':
         default:
-            // Completamente casuale - più spazio di movimento
+            // Completamente casuale
             x = Math.random() * maxX;
             y = Math.random() * maxY;
             break;
@@ -1475,7 +1215,12 @@ function updateMovementSpeed() {
     // Restart interval con nuova velocità
     if (minigameInterval) {
         clearInterval(minigameInterval);
-        startSmartMovement(); // Riavvia movimento con nuova velocità
+        minigameInterval = setInterval(() => {
+            if (minigameActive) {
+                const move = arguments.callee.caller;
+                // Trigger movimento (gestito in startSmartMovement)
+            }
+        }, getCurrentSpeed());
     }
 }
 
@@ -1689,246 +1434,4 @@ function showNotification(message, type = 'info') {
         notification.classList.add('fade-out');
         setTimeout(() => notification.remove(), 300);
     }, 2500);
-}
-
-// ==========================================
-// EXPORT / IMPORT / WELCOME MODAL
-// ==========================================
-
-function initExportImport() {
-    const avatarMenuBtn = document.getElementById('avatarMenuBtn');
-    const avatarDropdown = document.getElementById('avatarDropdown');
-    const exportBtn = document.getElementById('exportDataBtn');
-    const importBtn = document.getElementById('importDataBtn');
-    const resetBtn = document.getElementById('resetDataBtn');
-    const importFileInput = document.getElementById('importFileInput');
-    const headerAvatarIcon = document.getElementById('headerAvatarIcon');
-
-    // Aggiorna avatar nell'header
-    if (headerAvatarIcon) {
-        headerAvatarIcon.textContent = appState.petAvatar;
-    }
-
-    // Toggle dropdown
-    if (avatarMenuBtn && avatarDropdown) {
-        avatarMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            avatarDropdown.classList.toggle('active');
-        });
-
-        // Chiudi dropdown quando si clicca fuori
-        document.addEventListener('click', () => {
-            avatarDropdown.classList.remove('active');
-        });
-
-        avatarDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    // Export dati - Apri modale informativa
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            openDataManagementModal();
-            avatarDropdown.classList.remove('active');
-        });
-    }
-
-    // Import dati - Apri modale informativa
-    if (importBtn && importFileInput) {
-        importBtn.addEventListener('click', () => {
-            openDataManagementModal();
-            avatarDropdown.classList.remove('active');
-        });
-
-        importFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                importData(file);
-            }
-        });
-    }
-
-    // Gestione pulsanti nella modale gestione dati
-    const confirmExportBtn = document.getElementById('confirmExportBtn');
-    const confirmImportBtn = document.getElementById('confirmImportBtn');
-    const dataManagementModal = document.getElementById('dataManagementModal');
-
-    if (confirmExportBtn) {
-        confirmExportBtn.addEventListener('click', () => {
-            exportData();
-            closeModal(dataManagementModal);
-        });
-    }
-
-    if (confirmImportBtn && importFileInput) {
-        confirmImportBtn.addEventListener('click', () => {
-            importFileInput.click();
-            closeModal(dataManagementModal);
-        });
-    }
-
-    // Reset dati
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            if (confirm('⚠️ Sei sicuro di voler cancellare TUTTI i dati? Questa azione non può essere annullata!')) {
-                resetAllData();
-            }
-            avatarDropdown.classList.remove('active');
-        });
-    }
-}
-
-function openDataManagementModal() {
-    const modal = document.getElementById('dataManagementModal');
-    if (modal) {
-        openModal(modal);
-    }
-}
-
-function exportData() {
-    const dataToExport = {
-        version: '1.0',
-        exportDate: new Date().toISOString(),
-        data: appState
-    };
-
-    const jsonString = JSON.stringify(dataToExport, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `petboard-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showNotification('✅ Dati esportati con successo!', 'success');
-}
-
-function importData(file) {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-        try {
-            const imported = JSON.parse(e.target.result);
-
-            // Validazione base
-            if (!imported.data || !imported.version) {
-                throw new Error('File non valido');
-            }
-
-            // Conferma importazione
-            if (confirm('⚠️ L\'importazione sovrascriverà tutti i dati attuali. Continuare?')) {
-                // Salva i dati importati
-                Object.assign(appState, imported.data);
-                saveToLocalStorage();
-
-                // Re-render tutto
-                renderDiaryEntries();
-                renderCalendar();
-                renderHealthEvents();
-                renderShoppingItems();
-                renderTimeline();
-                updateHomeStats();
-                updateRecentActivities();
-
-                // Aggiorna avatar header
-                document.getElementById('headerAvatarIcon').textContent = appState.petAvatar;
-                document.getElementById('petName').textContent = appState.petName;
-                document.getElementById('petName').textContent = appState.petName;
-                document.getElementById('avatarPlaceholder').textContent = appState.petAvatar;
-
-                showNotification('✅ Dati importati con successo!', 'success');
-            }
-        } catch (error) {
-            console.error('Errore importazione:', error);
-            alert('❌ Errore durante l\'importazione del file. Assicurati che sia un backup valido di PetBoard.');
-        }
-    };
-
-    reader.onerror = () => {
-        alert('❌ Errore durante la lettura del file.');
-    };
-
-    reader.readAsText(file);
-}
-
-function resetAllData() {
-    localStorage.removeItem('petboard_data');
-    localStorage.removeItem('petboard_minigame_highscore');
-    localStorage.removeItem('petboard_first_visit');
-
-    showNotification('🗑️ Tutti i dati sono stati cancellati!', 'warning');
-
-    setTimeout(() => {
-        location.reload();
-    }, 1500);
-}
-
-// ==========================================
-// WELCOME MODAL (PRIMO ACCESSO)
-// ==========================================
-
-function initWelcomeModal() {
-    const firstVisit = localStorage.getItem('petboard_first_visit');
-
-    if (!firstVisit) {
-        showWelcomeModal();
-    }
-}
-
-function showWelcomeModal() {
-    const welcomeModal = document.getElementById('welcomeModal');
-    const welcomePetNameInput = document.getElementById('welcomePetName');
-    const saveWelcomeBtn = document.getElementById('saveWelcomeBtn');
-    const avatarOptions = welcomeModal.querySelectorAll('.avatar-option');
-
-    let selectedAvatar = '🐶'; // Default
-
-    // Gestione selezione avatar nella modale benvenuto
-    avatarOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            avatarOptions.forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-            selectedAvatar = option.dataset.avatar;
-        });
-    });
-
-    // Salva e chiudi modale benvenuto
-    saveWelcomeBtn.addEventListener('click', () => {
-        const petName = welcomePetNameInput.value.trim() || 'Amico';
-
-        // Salva nel state
-        appState.petName = petName;
-        appState.petAvatar = selectedAvatar;
-        saveToLocalStorage();
-
-        // Segna come visitato
-        localStorage.setItem('petboard_first_visit', 'true');
-
-        // Aggiorna UI
-        document.getElementById('petName').textContent = petName;
-        document.getElementById('avatarPlaceholder').textContent = selectedAvatar;
-        document.getElementById('headerAvatarIcon').textContent = selectedAvatar;
-
-        // Chiudi modale
-        closeModal(welcomeModal);
-
-        // Mostra notifica benvenuto
-        showNotification(`🎉 Benvenuto, ${petName}!`, 'success');
-    });
-
-    // Apri modale
-    openModal(welcomeModal);
-}
-
-// Aggiorna avatar nell'header quando cambia nella sezione Personalizza
-function updateHeaderAvatar() {
-    const headerAvatarIcon = document.getElementById('headerAvatarIcon');
-    if (headerAvatarIcon) {
-        headerAvatarIcon.textContent = appState.petAvatar;
-    }
 }
