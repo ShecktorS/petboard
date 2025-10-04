@@ -1045,16 +1045,48 @@ body::after {
     border-top: 4px solid var(--color-primary);
 }
 
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.category-header > div {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
 .category-icon {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: var(--spacing-sm);
+    font-size: 2.5rem;
 }
 
 .category-card h3 {
     font-size: 1.3rem;
     color: var(--color-text);
-    margin-bottom: var(--spacing-md);
+    margin: 0;
+}
+
+.btn-quick-add {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border: 2px solid var(--color-white);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-bounce);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-quick-add:hover {
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: var(--shadow-md);
 }
 
 .shopping-items {
@@ -1204,12 +1236,14 @@ body::after {
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
 }
 
 .timeline-card:hover {
     transform: translateX(8px);
     box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
 }
 
 .timeline-date {

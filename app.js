@@ -302,6 +302,16 @@ function resetHealthForm() {
     document.getElementById('healthReminder').checked = false;
 }
 
+function openHealthModalWithDate(dateStr) {
+    const modal = document.getElementById('healthModal');
+
+    // Pre-compila il campo data
+    document.getElementById('healthDate').value = dateStr;
+
+    // Apri modale
+    openModal(modal);
+}
+
 function getHealthTypeLabel(type) {
     const labels = {
         vaccination: 'Vaccinazione',
@@ -358,6 +368,14 @@ function renderCalendar() {
         if (appState.healthEvents.some(e => e.date === dateStr)) {
             dayEl.classList.add('has-event');
         }
+
+        // Click su giorno → apre modale con data pre-selezionata
+        dayEl.addEventListener('click', () => {
+            openHealthModalWithDate(dateStr);
+        });
+
+        // Stile cursor pointer
+        dayEl.style.cursor = 'pointer';
 
         grid.appendChild(dayEl);
     }
@@ -439,8 +457,28 @@ function initShopping() {
     cancelBtn.addEventListener('click', () => closeModal(modal));
     saveBtn.addEventListener('click', saveShoppingItem);
 
+    // Quick add buttons per categoria
+    document.querySelectorAll('.btn-quick-add').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const category = btn.dataset.category;
+            openShoppingModalWithCategory(category);
+        });
+    });
+
     renderShoppingItems();
 }
+
+function openShoppingModalWithCategory(category) {
+    const modal = document.getElementById('shoppingModal');
+
+    // Pre-seleziona la categoria
+    document.getElementById('shoppingCategory').value = category;
+
+    // Apri modale
+    openModal(modal);
+}
+
+let editingShoppingId = null; // Track se stiamo modificando
 
 function saveShoppingItem() {
     const category = document.getElementById('shoppingCategory').value;
@@ -454,18 +492,32 @@ function saveShoppingItem() {
         return;
     }
 
-    const shoppingItem = {
-        id: Date.now(),
-        category,
-        item,
-        quantity: quantity || 1,
-        date,
-        notes,
-        completed: false,
-        timestamp: new Date().toISOString()
-    };
+    if (editingShoppingId) {
+        // Modalità modifica
+        const existingItem = appState.shoppingItems.find(i => i.id === editingShoppingId);
+        if (existingItem) {
+            existingItem.category = category;
+            existingItem.item = item;
+            existingItem.quantity = quantity || 1;
+            existingItem.date = date;
+            existingItem.notes = notes;
+        }
+        editingShoppingId = null;
+    } else {
+        // Modalità creazione
+        const shoppingItem = {
+            id: Date.now(),
+            category,
+            item,
+            quantity: quantity || 1,
+            date,
+            notes,
+            completed: false,
+            timestamp: new Date().toISOString()
+        };
+        appState.shoppingItems.push(shoppingItem);
+    }
 
-    appState.shoppingItems.push(shoppingItem);
     saveToLocalStorage();
     renderShoppingItems();
     closeModal(document.getElementById('shoppingModal'));
@@ -474,12 +526,41 @@ function saveShoppingItem() {
     updateRecentActivities();
 }
 
+function openEditShoppingModal(item) {
+    const modal = document.getElementById('shoppingModal');
+
+    // Memorizza ID per modifica
+    editingShoppingId = item.id;
+
+    // Pre-compila i campi
+    document.getElementById('shoppingCategory').value = item.category;
+    document.getElementById('shoppingItem').value = item.item;
+    document.getElementById('shoppingQuantity').value = item.quantity;
+    document.getElementById('shoppingDate').value = item.date || '';
+    document.getElementById('shoppingNotes').value = item.notes || '';
+
+    // Cambia titolo modale
+    modal.querySelector('.modal-header h3').textContent = 'Modifica promemoria 📝';
+
+    // Apri modale
+    openModal(modal);
+}
+
 function resetShoppingForm() {
     document.getElementById('shoppingCategory').value = 'food';
     document.getElementById('shoppingItem').value = '';
     document.getElementById('shoppingQuantity').value = '1';
     document.getElementById('shoppingDate').value = '';
     document.getElementById('shoppingNotes').value = '';
+
+    // Reset titolo modale
+    const modal = document.getElementById('shoppingModal');
+    if (modal) {
+        modal.querySelector('.modal-header h3').textContent = 'Nuovo promemoria 🌸';
+    }
+
+    // Reset editing ID
+    editingShoppingId = null;
 }
 
 function renderShoppingItems() {
@@ -530,9 +611,25 @@ function renderShoppingItems() {
             // Aggiungi event listeners
             const toggleBtn = itemEl.querySelector('.btn-toggle-shopping');
             const deleteBtn = itemEl.querySelector('.btn-delete-shopping');
+            const itemInfo = itemEl.querySelector('.item-info');
 
-            toggleBtn.addEventListener('click', () => toggleShoppingItem(item.id));
-            deleteBtn.addEventListener('click', () => deleteShoppingItem(item.id));
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Previeni apertura modale
+                toggleShoppingItem(item.id);
+            });
+
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Previeni apertura modale
+                deleteShoppingItem(item.id);
+            });
+
+            // Click su item-info apre modifica (non interferisce con drag handle)
+            itemInfo.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditShoppingModal(item);
+            });
+
+            itemInfo.style.cursor = 'pointer';
 
             // Drag and drop event listeners (Desktop)
             itemEl.addEventListener('dragstart', handleDragStart);
@@ -838,13 +935,47 @@ function renderTimeline() {
         return `
             <div class="timeline-item">
                 <div class="timeline-dot">${event.icon}</div>
-                <div class="timeline-card">
+                <div class="timeline-card" data-id="${event.id}" data-type="${event.type}">
                     <div class="timeline-date">${formatDate(eventDate)}</div>
                     ${content}
                 </div>
             </div>
         `;
     }).join('');
+
+    // Aggiungi click listeners alle card
+    container.querySelectorAll('.timeline-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            const id = parseInt(card.dataset.id);
+            const type = card.dataset.type;
+            openTimelineItemEdit(id, type);
+        });
+    });
+}
+
+function openTimelineItemEdit(id, type) {
+    if (type === 'diary') {
+        // Trova entry diario e apri modale diario in modalità edit
+        const entry = appState.diaryEntries.find(e => e.id === id);
+        if (entry) {
+            // TODO: Implementare edit diario (simile a shopping)
+            alert('Modifica diario: feature in arrivo! Per ora puoi eliminare e ricreare.');
+        }
+    } else if (type === 'health') {
+        // Trova evento salute e apri modale salute in modalità edit
+        const event = appState.healthEvents.find(e => e.id === id);
+        if (event) {
+            // TODO: Implementare edit salute
+            alert('Modifica evento salute: feature in arrivo! Per ora puoi eliminare e ricreare.');
+        }
+    } else if (type === 'shopping') {
+        // Trova item shopping e apri modale shopping in modalità edit
+        const item = appState.shoppingItems.find(i => i.id === id);
+        if (item) {
+            openEditShoppingModal(item);
+        }
+    }
 }
 
 // ==========================================
