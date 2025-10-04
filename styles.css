@@ -1604,13 +1604,15 @@ body::after {
 
     /* Modale responsive - evita sovrapposizione con header */
     .modal {
-        padding-top: 80px; /* Spazio per header sticky */
+        padding-top: 120px; /* Spazio generoso per header sticky */
+        padding-bottom: var(--spacing-lg);
         align-items: flex-start; /* Allinea in alto invece di centrare */
     }
 
     .modal-content {
-        margin-top: var(--spacing-md);
-        max-height: calc(100vh - 100px); /* Considera header e padding */
+        margin-top: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+        max-height: calc(100vh - 140px); /* Considera header e padding */
     }
 }
 
