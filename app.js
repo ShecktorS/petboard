@@ -937,9 +937,9 @@ let minigameMissedClicks = 0;
 
 // Costanti di bilanciamento
 const MINIGAME_CONFIG = {
-    baseSpeed: 1200,           // Velocità iniziale (ms)
-    minSpeed: 300,             // Velocità massima raggiungibile (ms)
-    speedDecrement: 50,        // Riduzione velocità per punto
+    baseSpeed: 800,            // Velocità iniziale (ms) - ridotta per più velocità
+    minSpeed: 200,             // Velocità massima raggiungibile (ms)
+    speedDecrement: 40,        // Riduzione velocità per punto
     comboWindow: 2000,         // Tempo per mantenere combo (ms)
     comboThreshold: 3,         // Click necessari per attivare combo
     powerUpChance: 0.15,       // 15% chance di power-up
@@ -1046,7 +1046,7 @@ function startSmartMovement() {
     if (!container) return;
 
     let moveCount = 0;
-    const patternChangeInterval = 8; // Cambia pattern ogni 8 movimenti
+    const patternChangeInterval = 5; // Cambia pattern ogni 5 movimenti (più varietà)
 
     const move = () => {
         if (!minigameActive) {
@@ -1065,7 +1065,7 @@ function startSmartMovement() {
         const newPosition = calculateNextPosition(container, avatarPlaceholder, minigameMovementPattern, moveCount);
 
         // Applica movimento con transizione fluida
-        const transitionDuration = getCurrentSpeed() * 0.6; // 60% del tempo di pausa
+        const transitionDuration = getCurrentSpeed() * 0.7; // 70% del tempo di pausa per movimento più fluido
         avatarPlaceholder.style.position = 'absolute';
         avatarPlaceholder.style.left = newPosition.x + 'px';
         avatarPlaceholder.style.top = newPosition.y + 'px';
@@ -1115,8 +1115,8 @@ function calculateNextPosition(container, avatar, pattern, moveCount) {
             break;
 
         case 'bounce':
-            // Rimbalzo da bordi
-            const stepSize = 100;
+            // Rimbalzo da bordi - movimento più ampio
+            const stepSize = 150;
             x = currentX + (Math.random() - 0.5) * stepSize * 2;
             y = currentY + (Math.random() - 0.5) * stepSize * 2;
             x = Math.max(0, Math.min(x, maxX));
@@ -1125,7 +1125,7 @@ function calculateNextPosition(container, avatar, pattern, moveCount) {
 
         case 'random':
         default:
-            // Completamente casuale
+            // Completamente casuale - più spazio di movimento
             x = Math.random() * maxX;
             y = Math.random() * maxY;
             break;
@@ -1215,12 +1215,7 @@ function updateMovementSpeed() {
     // Restart interval con nuova velocità
     if (minigameInterval) {
         clearInterval(minigameInterval);
-        minigameInterval = setInterval(() => {
-            if (minigameActive) {
-                const move = arguments.callee.caller;
-                // Trigger movimento (gestito in startSmartMovement)
-            }
-        }, getCurrentSpeed());
+        startSmartMovement(); // Riavvia movimento con nuova velocità
     }
 }
 
