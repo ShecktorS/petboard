@@ -1338,6 +1338,7 @@ body::after {
     align-items: center;
     justify-content: center;
     padding: var(--spacing-md);
+    overflow-y: auto; /* Permette scroll della modale stessa se troppo alta */
 }
 
 .modal.active {
@@ -1354,6 +1355,8 @@ body::after {
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     animation: slideUp 0.3s ease;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 @keyframes slideUp {
@@ -1597,6 +1600,17 @@ body::after {
 
     .minigame-notification.final-score {
         padding: var(--spacing-lg);
+    }
+
+    /* Modale responsive - evita sovrapposizione con header */
+    .modal {
+        padding-top: 80px; /* Spazio per header sticky */
+        align-items: flex-start; /* Allinea in alto invece di centrare */
+    }
+
+    .modal-content {
+        margin-top: var(--spacing-md);
+        max-height: calc(100vh - 100px); /* Considera header e padding */
     }
 }
 
