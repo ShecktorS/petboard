@@ -532,9 +532,14 @@ function renderShoppingItems() {
             toggleBtn.addEventListener('click', () => toggleShoppingItem(item.id));
             deleteBtn.addEventListener('click', () => deleteShoppingItem(item.id));
 
-            // Drag and drop event listeners
+            // Drag and drop event listeners (Desktop)
             itemEl.addEventListener('dragstart', handleDragStart);
             itemEl.addEventListener('dragend', handleDragEnd);
+
+            // Touch events per mobile
+            itemEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+            itemEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+            itemEl.addEventListener('touchend', handleTouchEnd, { passive: false });
         }
     });
 }
@@ -544,6 +549,10 @@ function renderShoppingItems() {
 // ==========================================
 
 let draggedItem = null;
+let touchClone = null;
+let touchStartX = 0;
+let touchStartY = 0;
+let currentDropZone = null;
 
 function handleDragStart(e) {
     draggedItem = e.currentTarget;
@@ -559,6 +568,110 @@ function handleDragEnd(e) {
     document.querySelectorAll('.shopping-items').forEach(container => {
         container.classList.remove('drag-over');
     });
+}
+
+// ==========================================
+// TOUCH HANDLERS PER MOBILE
+// ==========================================
+
+function handleTouchStart(e) {
+    draggedItem = e.currentTarget;
+    const touch = e.touches[0];
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    // Crea clone visivo per feedback
+    touchClone = draggedItem.cloneNode(true);
+    touchClone.classList.add('touch-dragging-clone');
+    touchClone.style.position = 'fixed';
+    touchClone.style.pointerEvents = 'none';
+    touchClone.style.zIndex = '10000';
+    touchClone.style.opacity = '0.8';
+    touchClone.style.transform = 'scale(1.05)';
+    touchClone.style.width = draggedItem.offsetWidth + 'px';
+    touchClone.style.left = touch.clientX - (draggedItem.offsetWidth / 2) + 'px';
+    touchClone.style.top = touch.clientY - 30 + 'px';
+    document.body.appendChild(touchClone);
+
+    // Aggiungi classe all'originale
+    draggedItem.classList.add('touch-dragging');
+}
+
+function handleTouchMove(e) {
+    if (!touchClone || !draggedItem) return;
+
+    e.preventDefault(); // Previeni scroll durante drag
+
+    const touch = e.touches[0];
+
+    // Aggiorna posizione clone
+    touchClone.style.left = touch.clientX - (draggedItem.offsetWidth / 2) + 'px';
+    touchClone.style.top = touch.clientY - 30 + 'px';
+
+    // Trova elemento sotto il tocco
+    touchClone.style.display = 'none';
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    touchClone.style.display = '';
+
+    // Rimuovi highlight da tutte le zone
+    document.querySelectorAll('.shopping-items').forEach(container => {
+        container.classList.remove('drag-over');
+    });
+
+    // Trova la drop zone (il container .shopping-items più vicino)
+    if (elementBelow) {
+        const dropZone = elementBelow.closest('.shopping-items');
+        if (dropZone) {
+            currentDropZone = dropZone;
+            dropZone.classList.add('drag-over');
+        } else {
+            currentDropZone = null;
+        }
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!draggedItem) return;
+
+    // Rimuovi clone
+    if (touchClone) {
+        touchClone.remove();
+        touchClone = null;
+    }
+
+    // Rimuovi classi
+    draggedItem.classList.remove('touch-dragging');
+    document.querySelectorAll('.shopping-items').forEach(container => {
+        container.classList.remove('drag-over');
+    });
+
+    // Esegui drop se c'è una zona valida
+    if (currentDropZone && currentDropZone.classList.contains('shopping-items')) {
+        const itemId = parseInt(draggedItem.dataset.id);
+        const item = appState.shoppingItems.find(i => i.id === itemId);
+
+        if (item) {
+            const newCategory = getCategoryFromContainer(currentDropZone);
+
+            if (newCategory && newCategory !== item.category) {
+                // Aggiorna categoria
+                item.category = newCategory;
+                saveToLocalStorage();
+
+                // Animazione di feedback
+                showCategoryChangeNotification(item.item, newCategory);
+
+                // Re-render
+                renderShoppingItems();
+                updateRecentActivities();
+            }
+        }
+    }
+
+    // Reset
+    draggedItem = null;
+    currentDropZone = null;
 }
 
 function handleDragOver(e) {

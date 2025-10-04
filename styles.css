@@ -1006,6 +1006,24 @@ body::after {
     transform: scale(0.95) rotate(3deg);
 }
 
+/* Touch Drag States (Mobile) */
+.shopping-item.touch-dragging {
+    opacity: 0.3;
+    transform: scale(0.95);
+}
+
+.touch-dragging-clone {
+    cursor: grabbing !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    transition: none !important;
+    animation: wiggle 0.3s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: scale(1.05) rotate(-2deg); }
+    50% { transform: scale(1.05) rotate(2deg); }
+}
+
 .shopping-item.completed {
     opacity: 0.6;
     text-decoration: line-through;
