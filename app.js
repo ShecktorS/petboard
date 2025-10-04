@@ -974,7 +974,7 @@ function openTimelineItemEdit(id, type) {
         const item = appState.shoppingItems.find(i => i.id === id);
         if (item) {
             // Passa alla sezione shopping
-            navigateToSection('shopping');
+            switchSection('shopping');
             // Piccolo delay per assicurarsi che la sezione sia visibile
             setTimeout(() => {
                 openEditShoppingModal(item);
