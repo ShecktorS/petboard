@@ -1097,12 +1097,16 @@ function openModal(modal) {
     modal.classList.add('active');
     // Blocca scroll del body quando modale è aperta
     document.body.style.overflow = 'hidden';
+    // Aggiungi classe per modificare header (evita sovrapposizione)
+    document.body.classList.add('modal-open');
 }
 
 function closeModal(modal) {
     modal.classList.remove('active');
     // Riabilita scroll del body
     document.body.style.overflow = '';
+    // Rimuovi classe modal-open
+    document.body.classList.remove('modal-open');
 }
 
 // Click fuori dal modal per chiudere
