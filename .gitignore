@@ -17,6 +17,7 @@ desktop.ini
 
 # File di configurazione personale
 CLAUDE.md
+.claude/
 
 # Node modules (se in futuro si aggiungono dipendenze)
 node_modules/
