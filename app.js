@@ -1586,18 +1586,18 @@ function initExportImport() {
         });
     }
 
-    // Export dati
+    // Export dati - Apri modale informativa
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
-            exportData();
+            openDataManagementModal();
             avatarDropdown.classList.remove('active');
         });
     }
 
-    // Import dati
+    // Import dati - Apri modale informativa
     if (importBtn && importFileInput) {
         importBtn.addEventListener('click', () => {
-            importFileInput.click();
+            openDataManagementModal();
             avatarDropdown.classList.remove('active');
         });
 
@@ -1609,6 +1609,25 @@ function initExportImport() {
         });
     }
 
+    // Gestione pulsanti nella modale gestione dati
+    const confirmExportBtn = document.getElementById('confirmExportBtn');
+    const confirmImportBtn = document.getElementById('confirmImportBtn');
+    const dataManagementModal = document.getElementById('dataManagementModal');
+
+    if (confirmExportBtn) {
+        confirmExportBtn.addEventListener('click', () => {
+            exportData();
+            closeModal(dataManagementModal);
+        });
+    }
+
+    if (confirmImportBtn && importFileInput) {
+        confirmImportBtn.addEventListener('click', () => {
+            importFileInput.click();
+            closeModal(dataManagementModal);
+        });
+    }
+
     // Reset dati
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -1617,6 +1636,13 @@ function initExportImport() {
             }
             avatarDropdown.classList.remove('active');
         });
+    }
+}
+
+function openDataManagementModal() {
+    const modal = document.getElementById('dataManagementModal');
+    if (modal) {
+        openModal(modal);
     }
 }
 

@@ -512,6 +512,47 @@
         </div>
     </main>
 
+    <!-- Modale Gestione Dati -->
+    <div id="dataManagementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔒 Gestione Dati - Privacy First</h3>
+                <button class="modal-close" onclick="closeModal(document.getElementById('dataManagementModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="privacy-info-box">
+                    <div class="privacy-icon">🛡️</div>
+                    <div class="privacy-text">
+                        <h4>I tuoi dati sono al sicuro</h4>
+                        <p>PetBoard salva tutti i dati <strong>esclusivamente nel tuo browser</strong> (localStorage). Nessuna informazione viene inviata a server esterni o cloud.</p>
+
+                        <div class="info-highlight">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>Esporta regolarmente un backup per non perdere i tuoi ricordi!</span>
+                        </div>
+
+                        <ul class="privacy-list">
+                            <li><i class="fa-solid fa-check"></i> Zero tracking</li>
+                            <li><i class="fa-solid fa-check"></i> Dati solo sul tuo dispositivo</li>
+                            <li><i class="fa-solid fa-check"></i> Massima privacy garantita</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer data-management-footer">
+                <button class="btn-secondary" onclick="closeModal(document.getElementById('dataManagementModal'))">
+                    <i class="fa-solid fa-xmark"></i> Annulla
+                </button>
+                <button class="btn-export" id="confirmExportBtn">
+                    <i class="fa-solid fa-download"></i> Esporta Dati
+                </button>
+                <button class="btn-import" id="confirmImportBtn">
+                    <i class="fa-solid fa-upload"></i> Importa Dati
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modale Benvenuto (Primo Accesso) -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content welcome-modal-content">
