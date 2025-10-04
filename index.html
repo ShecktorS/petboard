@@ -45,8 +45,32 @@
                     <span>Personalizza</span>
                 </button>
             </nav>
+
+            <!-- Menu Avatar con dropdown -->
+            <div class="avatar-menu-container">
+                <button class="avatar-menu-btn" id="avatarMenuBtn">
+                    <span class="avatar-menu-icon" id="headerAvatarIcon">🐶</span>
+                </button>
+                <div class="avatar-dropdown" id="avatarDropdown">
+                    <button class="dropdown-item" id="exportDataBtn">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Esporta dati</span>
+                    </button>
+                    <button class="dropdown-item" id="importDataBtn">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>Importa dati</span>
+                    </button>
+                    <button class="dropdown-item" id="resetDataBtn">
+                        <i class="fa-solid fa-trash"></i>
+                        <span>Cancella tutto</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
+
+    <!-- Input nascosto per import file -->
+    <input type="file" id="importFileInput" accept=".json" style="display: none;">
 
     <!-- Contenuto principale -->
     <main class="main">
@@ -487,6 +511,41 @@
             <!-- Sezione Personalizzazione -->
         </div>
     </main>
+
+    <!-- Modale Benvenuto (Primo Accesso) -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content welcome-modal-content">
+            <div class="modal-header">
+                <h3>🌸 Benvenuto in PetBoard! 🌸</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: var(--spacing-md); color: var(--color-text-light);">
+                    Prima di iniziare, personalizza il tuo compagno a 4 zampe!
+                </p>
+                <label style="display: block; margin-bottom: var(--spacing-xs); font-weight: 600;">
+                    Come si chiama il tuo amico?
+                </label>
+                <input type="text" id="welcomePetName" class="input-field" placeholder="Es. Fido, Luna, Max..." maxlength="20">
+
+                <label style="display: block; margin-top: var(--spacing-md); margin-bottom: var(--spacing-xs); font-weight: 600;">
+                    Scegli un avatar
+                </label>
+                <div class="avatar-grid">
+                    <button class="avatar-option active" data-avatar="🐶">🐶</button>
+                    <button class="avatar-option" data-avatar="🐱">🐱</button>
+                    <button class="avatar-option" data-avatar="🐰">🐰</button>
+                    <button class="avatar-option" data-avatar="🐹">🐹</button>
+                    <button class="avatar-option" data-avatar="🐦">🐦</button>
+                    <button class="avatar-option" data-avatar="🐠">🐠</button>
+                    <button class="avatar-option" data-avatar="🐢">🐢</button>
+                    <button class="avatar-option" data-avatar="🦎">🦎</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="saveWelcomeBtn">Inizia l'avventura! 🎉</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">

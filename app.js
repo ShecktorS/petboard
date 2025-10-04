@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeline();
     initCustomization();
     initMinigame();
+    initExportImport(); // Menu avatar con export/import
+    initWelcomeModal(); // Modale primo accesso
     updateHomeStats();
     updateRecentActivities();
     applyTheme();
@@ -878,6 +880,7 @@ function initCustomization() {
             option.classList.add('selected');
             appState.petAvatar = option.dataset.avatar;
             document.querySelector('.avatar-placeholder').textContent = appState.petAvatar;
+            updateHeaderAvatar(); // Aggiorna anche avatar nell'header
             saveToLocalStorage();
         });
     });
@@ -1546,4 +1549,220 @@ function showNotification(message, type = 'info') {
         notification.classList.add('fade-out');
         setTimeout(() => notification.remove(), 300);
     }, 2500);
+}
+
+// ==========================================
+// EXPORT / IMPORT / WELCOME MODAL
+// ==========================================
+
+function initExportImport() {
+    const avatarMenuBtn = document.getElementById('avatarMenuBtn');
+    const avatarDropdown = document.getElementById('avatarDropdown');
+    const exportBtn = document.getElementById('exportDataBtn');
+    const importBtn = document.getElementById('importDataBtn');
+    const resetBtn = document.getElementById('resetDataBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+
+    // Aggiorna avatar nell'header
+    if (headerAvatarIcon) {
+        headerAvatarIcon.textContent = appState.petAvatar;
+    }
+
+    // Toggle dropdown
+    if (avatarMenuBtn && avatarDropdown) {
+        avatarMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            avatarDropdown.classList.toggle('active');
+        });
+
+        // Chiudi dropdown quando si clicca fuori
+        document.addEventListener('click', () => {
+            avatarDropdown.classList.remove('active');
+        });
+
+        avatarDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Export dati
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            exportData();
+            avatarDropdown.classList.remove('active');
+        });
+    }
+
+    // Import dati
+    if (importBtn && importFileInput) {
+        importBtn.addEventListener('click', () => {
+            importFileInput.click();
+            avatarDropdown.classList.remove('active');
+        });
+
+        importFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                importData(file);
+            }
+        });
+    }
+
+    // Reset dati
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (confirm('⚠️ Sei sicuro di voler cancellare TUTTI i dati? Questa azione non può essere annullata!')) {
+                resetAllData();
+            }
+            avatarDropdown.classList.remove('active');
+        });
+    }
+}
+
+function exportData() {
+    const dataToExport = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        data: appState
+    };
+
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `petboard-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showNotification('✅ Dati esportati con successo!', 'success');
+}
+
+function importData(file) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
+
+            // Validazione base
+            if (!imported.data || !imported.version) {
+                throw new Error('File non valido');
+            }
+
+            // Conferma importazione
+            if (confirm('⚠️ L\'importazione sovrascriverà tutti i dati attuali. Continuare?')) {
+                // Salva i dati importati
+                Object.assign(appState, imported.data);
+                saveToLocalStorage();
+
+                // Re-render tutto
+                renderDiaryEntries();
+                renderCalendar();
+                renderHealthEvents();
+                renderShoppingItems();
+                renderTimeline();
+                updateHomeStats();
+                updateRecentActivities();
+
+                // Aggiorna avatar header
+                document.getElementById('headerAvatarIcon').textContent = appState.petAvatar;
+                document.getElementById('petName').textContent = appState.petName;
+                document.getElementById('petName').textContent = appState.petName;
+                document.getElementById('avatarPlaceholder').textContent = appState.petAvatar;
+
+                showNotification('✅ Dati importati con successo!', 'success');
+            }
+        } catch (error) {
+            console.error('Errore importazione:', error);
+            alert('❌ Errore durante l\'importazione del file. Assicurati che sia un backup valido di PetBoard.');
+        }
+    };
+
+    reader.onerror = () => {
+        alert('❌ Errore durante la lettura del file.');
+    };
+
+    reader.readAsText(file);
+}
+
+function resetAllData() {
+    localStorage.removeItem('petboard_data');
+    localStorage.removeItem('petboard_minigame_highscore');
+    localStorage.removeItem('petboard_first_visit');
+
+    showNotification('🗑️ Tutti i dati sono stati cancellati!', 'warning');
+
+    setTimeout(() => {
+        location.reload();
+    }, 1500);
+}
+
+// ==========================================
+// WELCOME MODAL (PRIMO ACCESSO)
+// ==========================================
+
+function initWelcomeModal() {
+    const firstVisit = localStorage.getItem('petboard_first_visit');
+
+    if (!firstVisit) {
+        showWelcomeModal();
+    }
+}
+
+function showWelcomeModal() {
+    const welcomeModal = document.getElementById('welcomeModal');
+    const welcomePetNameInput = document.getElementById('welcomePetName');
+    const saveWelcomeBtn = document.getElementById('saveWelcomeBtn');
+    const avatarOptions = welcomeModal.querySelectorAll('.avatar-option');
+
+    let selectedAvatar = '🐶'; // Default
+
+    // Gestione selezione avatar nella modale benvenuto
+    avatarOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            avatarOptions.forEach(o => o.classList.remove('active'));
+            option.classList.add('active');
+            selectedAvatar = option.dataset.avatar;
+        });
+    });
+
+    // Salva e chiudi modale benvenuto
+    saveWelcomeBtn.addEventListener('click', () => {
+        const petName = welcomePetNameInput.value.trim() || 'Amico';
+
+        // Salva nel state
+        appState.petName = petName;
+        appState.petAvatar = selectedAvatar;
+        saveToLocalStorage();
+
+        // Segna come visitato
+        localStorage.setItem('petboard_first_visit', 'true');
+
+        // Aggiorna UI
+        document.getElementById('petName').textContent = petName;
+        document.getElementById('avatarPlaceholder').textContent = selectedAvatar;
+        document.getElementById('headerAvatarIcon').textContent = selectedAvatar;
+
+        // Chiudi modale
+        closeModal(welcomeModal);
+
+        // Mostra notifica benvenuto
+        showNotification(`🎉 Benvenuto, ${petName}!`, 'success');
+    });
+
+    // Apri modale
+    openModal(welcomeModal);
+}
+
+// Aggiorna avatar nell'header quando cambia nella sezione Personalizza
+function updateHeaderAvatar() {
+    const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+    if (headerAvatarIcon) {
+        headerAvatarIcon.textContent = appState.petAvatar;
+    }
 }
