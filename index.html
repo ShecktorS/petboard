@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetBoard - Il tuo villaggio digitale per animali 🌿</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header con navigazione -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fa-solid fa-paw logo-icon"></i>
+                <h1>PetBoard</h1>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-section="home">
+                    <i class="fa-solid fa-house nav-icon"></i>
+                    <span>Home</span>
+                </button>
+                <button class="nav-btn" data-section="diary">
+                    <i class="fa-solid fa-book nav-icon"></i>
+                    <span>Diario</span>
+                </button>
+                <button class="nav-btn" data-section="health">
+                    <i class="fa-solid fa-heart-pulse nav-icon"></i>
+                    <span>Salute</span>
+                </button>
+                <button class="nav-btn" data-section="shopping">
+                    <i class="fa-solid fa-cart-shopping nav-icon"></i>
+                    <span>Acquisti</span>
+                </button>
+                <button class="nav-btn" data-section="timeline">
+                    <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+                    <span>Timeline</span>
+                </button>
+                <button class="nav-btn" data-section="tips">
+                    <i class="fa-solid fa-lightbulb nav-icon"></i>
+                    <span>Consigli</span>
+                </button>
+                <button class="nav-btn" data-section="customize">
+                    <i class="fa-solid fa-palette nav-icon"></i>
+                    <span>Personalizza</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenuto principale -->
+    <main class="main">
+        <div class="container">
+            <!-- Sezione Home -->
+            <section id="home" class="section active">
+                <div class="welcome-card">
+                    <div class="pet-avatar-container">
+                        <div class="pet-avatar" id="petAvatar">
+                            <div class="avatar-placeholder" id="avatarPlaceholder">🐶</div>
+                        </div>
+                        <div class="minigame-score" id="minigameScore" style="display: none;">
+                            <i class="fa-solid fa-star"></i> <span id="scoreValue">0</span>
+                        </div>
+                    </div>
+                    <h2 class="welcome-title">Benvenuto nel villaggio di <span id="petName">Fido</span>! 🌸</h2>
+                    <p class="welcome-subtitle">Un luogo sereno per prenderti cura del tuo amico a 4 zampe</p>
+
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <span class="stat-icon">📝</span>
+                            <div class="stat-info">
+                                <span class="stat-number" id="totalEntries">0</span>
+                                <span class="stat-label">Note nel diario</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">💉</span>
+                            <div class="stat-info">
+                                <span class="stat-number" id="nextVisit">-</span>
+                                <span class="stat-label">Prossima visita</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">🎯</span>
+                            <div class="stat-info">
+                                <span class="stat-number" id="remindersCount">0</span>
+                                <span class="stat-label">Promemoria attivi</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h3 class="section-title">Attività recenti 🌿</h3>
+                    <div id="recentActivitiesList" class="activities-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">🍃</span>
+                            <p>Inizia a creare ricordi con il tuo amico!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Diario -->
+            <section id="diary" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Diario dei ricordi 📔</h2>
+                    <button class="btn-primary" id="addDiaryBtn">
+                        <span>+ Nuova nota</span>
+                    </button>
+                </div>
+
+                <div id="diaryEntries" class="diary-grid">
+                    <div class="empty-state">
+                        <span class="empty-icon">🌸</span>
+                        <p>Inizia a scrivere i tuoi ricordi!</p>
+                    </div>
+                </div>
+
+                <!-- Modal per aggiungere nota -->
+                <div id="diaryModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Nuovo ricordo 🌼</h3>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="date" id="diaryDate" class="input-field" required>
+                            <input type="text" id="diaryTitle" class="input-field" placeholder="Titolo del ricordo...">
+                            <textarea id="diaryText" class="textarea-field" placeholder="Scrivi qui i tuoi pensieri..." rows="6"></textarea>
+                            <div class="photo-upload">
+                                <label for="diaryPhoto" class="upload-label">
+                                    <span class="upload-icon">📷</span>
+                                    <span>Aggiungi foto</span>
+                                </label>
+                                <input type="file" id="diaryPhoto" accept="image/*" style="display: none;">
+                                <div id="photoPreview" class="photo-preview"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" id="cancelDiaryBtn">Annulla</button>
+                            <button class="btn-primary" id="saveDiaryBtn">Salva ricordo</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Salute -->
+            <section id="health" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Salute e benessere 💚</h2>
+                    <button class="btn-primary" id="addHealthBtn">
+                        <span>+ Nuovo evento</span>
+                    </button>
+                </div>
+
+                <div class="health-calendar">
+                    <div class="calendar-header">
+                        <button id="prevMonth" class="calendar-nav">←</button>
+                        <h3 id="currentMonth" class="calendar-month"></h3>
+                        <button id="nextMonth" class="calendar-nav">→</button>
+                    </div>
+                    <div id="calendarGrid" class="calendar-grid"></div>
+                </div>
+
+                <div class="health-events">
+                    <h3 class="section-subtitle">Prossimi appuntamenti 🌿</h3>
+                    <div id="healthEventsList" class="events-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">🍀</span>
+                            <p>Nessun appuntamento in programma</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal per evento salute -->
+                <div id="healthModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Nuovo evento salute 💉</h3>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <select id="healthType" class="input-field">
+                                <option value="vaccination">Vaccinazione</option>
+                                <option value="visit">Visita veterinaria</option>
+                                <option value="therapy">Terapia</option>
+                                <option value="checkup">Controllo</option>
+                            </select>
+                            <input type="date" id="healthDate" class="input-field" required>
+                            <input type="time" id="healthTime" class="input-field">
+                            <input type="text" id="healthTitle" class="input-field" placeholder="Descrizione...">
+                            <textarea id="healthNotes" class="textarea-field" placeholder="Note aggiuntive..." rows="4"></textarea>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="healthReminder">
+                                <span>Ricordamelo il giorno prima</span>
+                            </label>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" id="cancelHealthBtn">Annulla</button>
+                            <button class="btn-primary" id="saveHealthBtn">Salva evento</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Shopping -->
+            <section id="shopping" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Lista della spesa 🛒</h2>
+                    <button class="btn-primary" id="addShoppingBtn">
+                        <span>+ Nuovo promemoria</span>
+                    </button>
+                </div>
+
+                <div class="shopping-categories">
+                    <div class="category-card">
+                        <span class="category-icon">🍖</span>
+                        <h3>Cibo</h3>
+                        <div id="foodList" class="shopping-items"></div>
+                    </div>
+                    <div class="category-card">
+                        <span class="category-icon">🦴</span>
+                        <h3>Snack</h3>
+                        <div id="snackList" class="shopping-items"></div>
+                    </div>
+                    <div class="category-card">
+                        <span class="category-icon">🎾</span>
+                        <h3>Accessori</h3>
+                        <div id="accessoryList" class="shopping-items"></div>
+                    </div>
+                    <div class="category-card">
+                        <span class="category-icon">💊</span>
+                        <h3>Farmaci</h3>
+                        <div id="medicineList" class="shopping-items"></div>
+                    </div>
+                </div>
+
+                <!-- Modal per promemoria shopping -->
+                <div id="shoppingModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Nuovo promemoria 🌸</h3>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <select id="shoppingCategory" class="input-field">
+                                <option value="food">Cibo</option>
+                                <option value="snack">Snack</option>
+                                <option value="accessory">Accessori</option>
+                                <option value="medicine">Farmaci</option>
+                            </select>
+                            <input type="text" id="shoppingItem" class="input-field" placeholder="Cosa devo comprare?">
+                            <input type="number" id="shoppingQuantity" class="input-field" placeholder="Quantità" min="1" value="1">
+                            <input type="date" id="shoppingDate" class="input-field" placeholder="Entro quando?">
+                            <textarea id="shoppingNotes" class="textarea-field" placeholder="Note..." rows="3"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" id="cancelShoppingBtn">Annulla</button>
+                            <button class="btn-primary" id="saveShoppingBtn">Salva promemoria</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Timeline -->
+            <section id="timeline" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Timeline dei momenti speciali ⭐</h2>
+                </div>
+
+                <div id="timelineView" class="timeline-container">
+                    <div class="empty-state">
+                        <span class="empty-icon">🌟</span>
+                        <p>La tua storia insieme sta per iniziare!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Personalizzazione -->
+            <section id="customize" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Personalizza il tuo villaggio 🎨</h2>
+                </div>
+
+                <div class="customize-grid">
+                    <div class="customize-card">
+                        <h3>Nome del tuo amico 🐾</h3>
+                        <input type="text" id="customPetName" class="input-field" placeholder="Es. Fido, Micia...">
+                        <button class="btn-primary" id="savePetNameBtn">Salva nome</button>
+                    </div>
+
+                    <div class="customize-card">
+                        <h3>Scegli avatar 🎭</h3>
+                        <div class="avatar-grid">
+                            <button class="avatar-option" data-avatar="🐶">🐶</button>
+                            <button class="avatar-option" data-avatar="🐱">🐱</button>
+                            <button class="avatar-option" data-avatar="🐰">🐰</button>
+                            <button class="avatar-option" data-avatar="🐹">🐹</button>
+                            <button class="avatar-option" data-avatar="🐦">🐦</button>
+                            <button class="avatar-option" data-avatar="🐠">🐠</button>
+                            <button class="avatar-option" data-avatar="🐢">🐢</button>
+                            <button class="avatar-option" data-avatar="🦎">🦎</button>
+                        </div>
+                    </div>
+
+                    <div class="customize-card">
+                        <h3>Tema del villaggio 🌈</h3>
+                        <div class="theme-grid">
+                            <button class="theme-option active" data-theme="default">
+                                <span class="theme-preview theme-default"></span>
+                                <span>Primavera</span>
+                            </button>
+                            <button class="theme-option" data-theme="summer">
+                                <span class="theme-preview theme-summer"></span>
+                                <span>Estate</span>
+                            </button>
+                            <button class="theme-option" data-theme="autumn">
+                                <span class="theme-preview theme-autumn"></span>
+                                <span>Autunno</span>
+                            </button>
+                            <button class="theme-option" data-theme="winter">
+                                <span class="theme-preview theme-winter"></span>
+                                <span>Inverno</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Consigli -->
+            <section id="tips" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Consigli per il tuo amico <i class="fa-solid fa-heart" style="color: #FFB5C0;"></i></h2>
+                </div>
+
+                <div class="tips-intro">
+                    <div class="intro-card">
+                        <i class="fa-solid fa-dog intro-icon"></i>
+                        <h3>L'importanza di prendersi cura del proprio animale</h3>
+                        <p>Gli animali domestici non sono solo compagni, ma membri della famiglia che arricchiscono le nostre vite con amore incondizionato, gioia e fedeltà. Prendersi cura di loro è una responsabilità che porta benefici incredibili sia per loro che per noi.</p>
+                    </div>
+                </div>
+
+                <div class="tips-grid">
+                    <!-- Benefici Salute -->
+                    <div class="tip-card">
+                        <div class="tip-image" style="background: linear-gradient(135deg, rgba(158, 213, 197, 0.3), rgba(184, 230, 240, 0.3)), url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800') center/cover;">
+                            <i class="fa-solid fa-heart-circle-check tip-icon-overlay"></i>
+                        </div>
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-heartbeat"></i> Benefici per la Salute</h3>
+                            <p>Studi scientifici dimostrano che avere un animale domestico riduce lo stress, abbassa la pressione sanguigna e migliora la salute cardiovascolare. La loro presenza ci rende più felici e attivi!</p>
+                            <blockquote class="tip-quote">
+                                <i class="fa-solid fa-quote-left"></i>
+                                "Da quando ho adottato Luna, la mia vita è cambiata completamente. Ogni giorno mi sveglio con una ragione in più per sorridere. Le passeggiate quotidiane mi hanno aiutato a superare un periodo difficile."
+                                <footer>— Maria, proprietaria di un Golden Retriever</footer>
+                            </blockquote>
+                        </div>
+                    </div>
+
+                    <!-- Routine e Responsabilità -->
+                    <div class="tip-card">
+                        <div class="tip-image" style="background: linear-gradient(135deg, rgba(255, 181, 192, 0.3), rgba(168, 213, 186, 0.3)), url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800') center/cover;">
+                            <i class="fa-solid fa-calendar-check tip-icon-overlay"></i>
+                        </div>
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-clock"></i> L'importanza della Routine</h3>
+                            <p>Una routine regolare per pasti, passeggiate e cure veterinarie mantiene il tuo animale sano e felice. Usa PetBoard per tenere traccia di tutti gli appuntamenti importanti!</p>
+                            <ul class="tip-checklist">
+                                <li><i class="fa-solid fa-check"></i> Pasti regolari agli stessi orari</li>
+                                <li><i class="fa-solid fa-check"></i> Esercizio fisico quotidiano</li>
+                                <li><i class="fa-solid fa-check"></i> Controlli veterinari periodici</li>
+                                <li><i class="fa-solid fa-check"></i> Tempo di qualità e coccole</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Alimentazione -->
+                    <div class="tip-card">
+                        <div class="tip-image" style="background: linear-gradient(135deg, rgba(255, 230, 109, 0.3), rgba(136, 217, 230, 0.3)), url('https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800') center/cover;">
+                            <i class="fa-solid fa-bowl-food tip-icon-overlay"></i>
+                        </div>
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-utensils"></i> Alimentazione Corretta</h3>
+                            <p>Una dieta bilanciata è fondamentale per la salute del tuo animale. Consulta sempre il veterinario per scegliere il cibo più adatto in base a età, taglia e condizioni di salute.</p>
+                            <div class="tip-stats">
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-percent"></i>
+                                    <span>70%</span>
+                                    <small>dei problemi di salute sono legati all'alimentazione</small>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-droplet"></i>
+                                    <span>Acqua</span>
+                                    <small>sempre fresca e disponibile</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Affetto e Socializzazione -->
+                    <div class="tip-card">
+                        <div class="tip-image" style="background: linear-gradient(135deg, rgba(200, 224, 245, 0.3), rgba(232, 232, 240, 0.3)), url('https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800') center/cover;">
+                            <i class="fa-solid fa-hands-holding-circle tip-icon-overlay"></i>
+                        </div>
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-people-group"></i> Amore e Socializzazione</h3>
+                            <p>Gli animali hanno bisogno di affetto, attenzione e interazione sociale tanto quanto di cibo e cure mediche. Dedica tempo ogni giorno al gioco e alle coccole.</p>
+                            <blockquote class="tip-quote">
+                                <i class="fa-solid fa-quote-left"></i>
+                                "Il mio gatto Whiskers mi aspetta sempre alla porta. Il suo ronfare mentre lo accarezzo è la miglior terapia dopo una giornata difficile. Non potrei immaginare la mia vita senza di lui."
+                                <footer>— Andrea, proprietario di un gatto persiano</footer>
+                            </blockquote>
+                        </div>
+                    </div>
+
+                    <!-- Emergenze -->
+                    <div class="tip-card highlight-card">
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-kit-medical"></i> In Caso di Emergenza</h3>
+                            <div class="emergency-info">
+                                <div class="emergency-item">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <div>
+                                        <strong>Numero Veterinario d'Emergenza</strong>
+                                        <p>Salva sempre il numero del tuo veterinario e di una clinica d'emergenza 24h</p>
+                                    </div>
+                                </div>
+                                <div class="emergency-item">
+                                    <i class="fa-solid fa-briefcase-medical"></i>
+                                    <div>
+                                        <strong>Kit di Pronto Soccorso</strong>
+                                        <p>Garze, disinfettante, termometro, pinzette, numeri utili</p>
+                                    </div>
+                                </div>
+                                <div class="emergency-item">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <div>
+                                        <strong>Sintomi Preoccupanti</strong>
+                                        <p>Vomito persistente, difficoltà respiratorie, letargia estrema → Veterinario subito!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonianze -->
+                    <div class="tip-card testimonials-card">
+                        <div class="tip-content">
+                            <h3><i class="fa-solid fa-comments"></i> Storie dalla Community</h3>
+                            <div class="testimonials-grid">
+                                <div class="testimonial">
+                                    <div class="testimonial-avatar">
+                                        <i class="fa-solid fa-dog"></i>
+                                    </div>
+                                    <p>"Max ha 14 anni e grazie alle cure costanti e all'amore è ancora pieno di energia. La prevenzione è tutto!"</p>
+                                    <footer>— Laura & Max</footer>
+                                </div>
+                                <div class="testimonial">
+                                    <div class="testimonial-avatar">
+                                        <i class="fa-solid fa-cat"></i>
+                                    </div>
+                                    <p>"PetBoard mi ha aiutato a non dimenticare mai le visite veterinarie di Micio. Ora è più sano che mai!"</p>
+                                    <footer>— Giuseppe & Micio</footer>
+                                </div>
+                                <div class="testimonial">
+                                    <div class="testimonial-avatar">
+                                        <i class="fa-solid fa-crow"></i>
+                                    </div>
+                                    <p>"Il mio pappagallo Kiwi ha bisogno di attenzioni speciali. Tenere un diario mi ha permesso di capire meglio le sue esigenze."</p>
+                                    <footer>— Elena & Kiwi</footer>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips-footer">
+                    <div class="footer-message">
+                        <i class="fa-solid fa-heart"></i>
+                        <p><strong>Ricorda:</strong> Prendersi cura di un animale è un impegno a lungo termine che richiede amore, pazienza e dedizione. Ma i benefici che porta alla tua vita sono inestimabili. Usa PetBoard per essere il migliore amico del tuo migliore amico! 🐾</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Personalizzazione -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>🌿 PetBoard - Il tuo villaggio digitale per animali 🌿</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
